@@ -27,3 +27,38 @@ def transform_load_data(task_instance):
     sunrise_time = datetime.utcfromtimestamp(data['sys']['sunrise'] + data['timezone'])
     sunset_time = datetime.utcfromtimestamp(data['sys']['sunset'] + data['timezone'])
 
+    transformed_data = {"City": city,
+                        "Description": weather_description,
+                        "Temperature (F)": temp_farenheit,
+                        "Feels Like (F)": feels_like_farenheit,
+                        "Minimun Temp (F)":min_temp_farenheit,
+                        "Maximum Temp (F)": max_temp_farenheit,
+                        "Pressure": pressure,
+                        "Humidty": humidity,
+                        "Wind Speed": wind_speed,
+                        "Time of Record": time_of_record,
+                        "Sunrise (Local Time)":sunrise_time,
+                        "Sunset (Local Time)": sunset_time                        
+                        }
+
+transformed_data_list = [transformed_data]
+df_data = pd.DataFrame(transformed_data_list)
+aws_credentials = {"key": "xxxxxxxxx", "secret": "xxxxxxxxxx", "token": "xxxxxxxxxxxxxx"}
+
+now = datetime.now()
+dt_string = now.strftime("%d%m%Y%H%M%S")
+dt_string = 'current_weather_data_portland_' + dt_string
+df_data.to_csv(f"s3://weatherapiairflowyoutubebucket-yml/{dt_string}.csv", index=False, storage_options=aws_credentials)
+
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2023, 1, 8),
+    'email': ['myemail@domain.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 2,
+    'retry_delay': timedelta(minutes=2)
+}
